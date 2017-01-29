@@ -151,30 +151,27 @@ def only_choice(sudoku):
     return sudoku
 
 
-def reduce_puzzle(sudoku):
+def reduce_puzzle(values):
     """
-    Uses constrain propagation to reduce the search space
-    Args:
-        sudoku: A dict representing the sudoku.
-    Returns:
-        A sudoku dict solved or partially solved
+    Iterate eliminate() and only_choice(). If at some point, there is a box with no available values, return False.
+    If the sudoku is solved, return the sudoku.
+    If after an iteration of both functions, the sudoku remains the same, return the sudoku.
+    Input: A sudoku in dictionary form.
+    Output: The resulting sudoku in dictionary form.
     """
-    improving = True
-    while improving:
-        solved_values = solved_boxes(sudoku)
+    solved_values = [box for box in values.keys() if len(values[box]) == 1]
+    stalled = False
+    while not stalled:
+        solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
+        values = eliminate(values)
+        values = only_choice(values)
+        values = naked_twins(values)
 
-        sudoku = eliminate(sudoku)
-        sudoku = only_choice(sudoku)
-        sudoku = naked_twins(sudoku)
-
-        solved_values_after = solved_boxes(sudoku)
-
-        improving = solved_values != solved_values_after
-
-        # Sanity check, return False if there is a box with zero available values:
-        if len([box for box in sudoku.keys() if len(sudoku[box]) == 0]):
+        solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
+        stalled = solved_values_before == solved_values_after
+        if len([box for box in values.keys() if len(values[box]) == 0]):
             return False
-    return sudoku
+    return values
 
 
 def search(sudoku):
