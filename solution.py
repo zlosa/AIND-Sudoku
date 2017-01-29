@@ -10,14 +10,41 @@ def assign_value(values, box, value):
         assignments.append(values.copy())
     return values
 
-def naked_twins(values):
-    """Eliminate values using the naked twins strategy.
+"""def naked_twins(values):
+    Eliminate values using the naked twins strategy.
     Args:
         values(dict): a dictionary of the form {'box_name': '123456789', ...}
 
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
+def naked_twins(sudoku):
+    """Eliminates values using the naked twins strategy.
+    Args:
+        sudoku: A dict representation of the sudoku
+    Returns:
+        A dict representation of the sudoku with the
+        naked twins deleted from it's peers.
+    """
+    pair_list = get_pairs(sudoku)
+    for box in pair_list:
+        for unit in units[box]:
+            # Find the peers in the unit that contains 2 digits
+            # but is not the box itself
+            peers_with_pairs = set(unit).intersection(set(peers[box])).intersection(set(pair_list))
+
+            for peer in peers_with_pairs:
+                if sudoku[box] == sudoku[peer]:
+                    for item in set(unit).difference(set([box, peer])):
+                        digit_1 = sudoku[box][0]
+                        digit_2 = sudoku[box][1]
+
+                        if digit_1 in sudoku[item]:
+                            sudoku = assign_value(sudoku, item, sudoku[item].replace(digit_1, ''))
+                        if digit_2 in sudoku[item]:
+                            assign_value(sudoku, item, sudoku[item].replace(digit_2, ''))
+
+    return sudoku
 
     # Find all instances of naked twins
     # Eliminate the naked twins as possibilities for their peers
@@ -74,13 +101,9 @@ def display(values):
     return
 
 boxes = cross(rows, cols)
-
 row_units = [cross(row, cols) for row in rows]
-
 column_units = [cross(rows, col) for col in cols]
-
 square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
-
 diagonal_units = [[row + cols[rows.index(row)] for row in rows],[row + cols[sorted(rows,reverse=True).index(row)] for row in rows]]
 unitlist = row_units + column_units + square_units + diagonal_units
 units = dict((box, [unit for unit in unitlist if box in unit]) for box in boxes)
