@@ -29,10 +29,10 @@ def update_dict(dictionary, key, value):
     dictionary.update({key: value})
     return dictionary
 
-def some(seq):
+'''def some(seq):
     for e in seq:
         if e: return e
-    return False
+    return False'''
 
 def grid_values(grid):
     assert len(grid) == 81, "The lenght of `grid` should be 81. A 9x9 sudoku"
@@ -107,8 +107,25 @@ def reduce_puzzle(sudoku):
 def solve(grid):
     return search(grid_values(grid))
 
-
 def search(sudoku):
+    "Using depth-first search and propagation, create a search tree and solve the sudoku."
+    # First, reduce the puzzle using the previous function
+    values = reduce_puzzle(sudoku)
+    if values == False:
+        return False
+
+    if all(len(values[s]) == 1 for s in boxes):
+        return values ## Solved!
+
+    n,s = min((len(values[s]), s) for s in boxes if len(values[s]) > 1)
+    for value in values[s]:
+        new_sudoku = values.copy()
+        new_sudoku[s] = value
+        attempt = search(new_sudoku)
+        if attempt:
+            return attempt
+        
+'''def search(sudoku):
     sudoku = reduce_puzzle(sudoku)
     if sudoku is False:
         return False
@@ -118,7 +135,7 @@ def search(sudoku):
 
     n, min_box = min((len(sudoku[box]), box) for box in boxes if len(sudoku[box]) > 1)
 
-    return some(search(update_dict(sudoku.copy(), min_box, digit)) for digit in sudoku[min_box])
+    return some(search(update_dict(sudoku.copy(), min_box, digit)) for digit in sudoku[min_box])'''
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
