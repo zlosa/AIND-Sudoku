@@ -93,7 +93,7 @@ def naked_twins(sudoku):
         naked twins deleted from it's peers.
     """
     pairs = return_pairs(sudoku)
-    for box in pair_list:
+    for box in pairs:
         for unit in units[box]:
             peers_pairs = set(unit).intersection(set(peers[box])).intersection(set(pairs))
             for peer in peers_pairs:
