@@ -4,60 +4,9 @@ rows = 'ABCDEFGHI'
 cols = '123456789'
 possible_digits = '123456789'
 
-def assign_value(values, box, value):
-    """
-    Please use this function to update your values dictionary!
-    Assigns a value to a given box. If it updates the board record it.
-    """
-    values[box] = value
-    if len(value) == 1:
-        assignments.append(values.copy())
-    return values
-
-"""def naked_twins(values):
-    Eliminate values using the naked twins strategy.
-    Args:
-        values(dict): a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns:
-        the values dictionary with the naked twins eliminated from peers.
-    """
-def naked_twins(sudoku):
-    """Eliminates values using the naked twins strategy.
-    Args:
-        sudoku: A dict representation of the sudoku
-    Returns:
-        A dict representation of the sudoku with the
-        naked twins deleted from it's peers.
-    """
-    potential_twins = [box for box in values.keys() if len(values[box]) == 2]
-    pair_list = potential_twins
-    for box in pair_list:
-        for unit in units[box]:
-            # Find the peers in the unit that contains 2 digits
-            # but is not the box itself
-            peers_with_pairs = set(unit).intersection(set(peers[box])).intersection(set(pair_list))
-
-            for peer in peers_with_pairs:
-                if sudoku[box] == sudoku[peer]:
-                    for item in set(unit).difference(set([box, peer])):
-                        digit_1 = sudoku[box][0]
-                        digit_2 = sudoku[box][1]
-
-                        if digit_1 in sudoku[item]:
-                            sudoku = assign_value(sudoku, item, sudoku[item].replace(digit_1, ''))
-                        if digit_2 in sudoku[item]:
-                            assign_value(sudoku, item, sudoku[item].replace(digit_2, ''))
-
-    return sudoku
-
-    # Find all instances of naked twins
-    # Eliminate the naked twins as possibilities for their peers
-
+# Utility functions
 def cross(a, b):
     """
-    "Cross product of elements in A and elements in B."
-    
     Return a list with all concatenations of a letter in
     `a` with a letter in `b`
     Args:
@@ -69,6 +18,41 @@ def cross(a, b):
     """
     return [s + t for s in a for t in b]
 
+def assign_value(sudoku, box, value):
+    """Please use this function to update your values dictionary!
+    Assigns a value to a given box. If it updates the board record it.
+    Args:
+        sudoku: A dict representation of the sudoku.
+        box: The box to be updated.
+        value: The value to update
+    Returns:
+        Returns the sudoku dict updated.
+    """
+    sudoku[box] = value
+    if len(value) == 1:
+        assignments.append(sudoku.copy())
+    return sudoku
+
+def get_pairs(sudoku):
+    """Return all the boxes with just 2 digits"""
+    return [box for box in boxes if len(sudoku[box]) == 2]
+
+def solved_boxes(sudoku):
+    """Returns the number of boxes solved in a sudoku"""
+    return len([box for box in sudoku.keys() if len(sudoku[box]) == 1])
+
+def update_dict(dictionary, key, value):
+    """Updates the dict `dictionary` and returns the dict"""
+    dictionary.update({key: value})
+    return dictionary
+
+def some(seq):
+    """Return some element of `seq` that is `True` http://norvig.com/sudoku.html"""
+    for e in seq:
+        if e: return e
+    return False
+
+# Display functions
 def grid_values(grid):
     """
     Returns a dict that represents a sudoku.
@@ -96,7 +80,6 @@ def display(values):
         values: A dict representing a sodoku.
     Returns:
         `None`
-        
     """
     width = 1 + max(len(values[s]) for s in boxes)
     line = '+'.join(['-' * (width * 3)] * 3)
@@ -104,15 +87,56 @@ def display(values):
         print(''.join(values[row + col].center(width) + ('|' if col in '36' else '') for col in cols))
         if row in 'CF': print(line)
     return
-
+# Sudoku structure variables
 boxes = cross(rows, cols)
+
+# Lets get all the row units
+# row_units[0] = ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1']
 row_units = [cross(row, cols) for row in rows]
+
+# Same for column units
+# column_units[0] = ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1']
 column_units = [cross(rows, col) for col in cols]
+
+# And now for square units
+# square_units[0] = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3', 'C1', 'C2', 'C3']
 square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
+
 diagonal_units = [[row + cols[rows.index(row)] for row in rows],[row + cols[sorted(rows,reverse=True).index(row)] for row in rows]]
 unitlist = row_units + column_units + square_units + diagonal_units
 units = dict((box, [unit for unit in unitlist if box in unit]) for box in boxes)
 peers = dict((box, set(sum(units[box], []))-set([box])) for box in boxes)
+
+
+# Constrain startegies
+
+def naked_twins(sudoku):
+    """Eliminates values using the naked twins strategy.
+    Args:
+        sudoku: A dict representation of the sudoku
+    Returns:
+        A dict representation of the sudoku with the
+        naked twins deleted from it's peers.
+    """
+    pair_list = get_pairs(sudoku)
+    for box in pair_list:
+        for unit in units[box]:
+            # Find the peers in the unit that contains 2 digits
+            # but is not the box itself
+            peers_with_pairs = set(unit).intersection(set(peers[box])).intersection(set(pair_list))
+
+            for peer in peers_with_pairs:
+                if sudoku[box] == sudoku[peer]:
+                    for item in set(unit).difference(set([box, peer])):
+                        digit_1 = sudoku[box][0]
+                        digit_2 = sudoku[box][1]
+
+                        if digit_1 in sudoku[item]:
+                            sudoku = assign_value(sudoku, item, sudoku[item].replace(digit_1, ''))
+                        if digit_2 in sudoku[item]:
+                            assign_value(sudoku, item, sudoku[item].replace(digit_2, ''))
+
+    return sudoku
 
 
 def eliminate(sudoku):
@@ -152,27 +176,41 @@ def only_choice(sudoku):
     return sudoku
 
 
-def reduce_puzzle(values):
+def reduce_puzzle(sudoku):
     """
-    Iterate eliminate() and only_choice(). If at some point, there is a box with no available values, return False.
-    If the sudoku is solved, return the sudoku.
-    If after an iteration of both functions, the sudoku remains the same, return the sudoku.
-    Input: A sudoku in dictionary form.
-    Output: The resulting sudoku in dictionary form.
+    Uses constrain propagation to reduce the search space
+    Args:
+        sudoku: A dict representing the sudoku.
+    Returns:
+        A sudoku dict solved or partially solved
     """
-    solved_values = [box for box in values.keys() if len(values[box]) == 1]
-    stalled = False
-    while not stalled:
-        solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
-        values = eliminate(values)
-        values = only_choice(values)
-        values = naked_twins(values)
+    improving = True
+    while improving:
+        solved_values = solved_boxes(sudoku)
 
-        solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
-        stalled = solved_values_before == solved_values_after
-        if len([box for box in values.keys() if len(values[box]) == 0]):
+        sudoku = eliminate(sudoku)
+        sudoku = only_choice(sudoku)
+        sudoku = naked_twins(sudoku)
+
+        solved_values_after = solved_boxes(sudoku)
+
+        improving = solved_values != solved_values_after
+
+        # Sanity check, return False if there is a box with zero available values:
+        if len([box for box in sudoku.keys() if len(sudoku[box]) == 0]):
             return False
-    return values
+    return sudoku
+
+def solve(grid):
+    """
+    Find the solution to a Sudoku grid.
+    Args:
+        grid(string): a string representing a sudoku grid.
+            Example: '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+    Returns:
+        The dictionary representation of the final sudoku grid. False if no solution exists.
+    """
+    return search(grid_values(grid))
 
 
 def search(sudoku):
@@ -194,17 +232,6 @@ def search(sudoku):
     n, min_box = min((len(sudoku[box]), box) for box in boxes if len(sudoku[box]) > 1)
 
     return some(search(update_dict(sudoku.copy(), min_box, digit)) for digit in sudoku[min_box])
-
-def solve(grid):
-    """
-    Find the solution to a Sudoku grid.
-    Args:
-        grid(string): a string representing a sudoku grid.
-            Example: '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    Returns:
-        The dictionary representation of the final sudoku grid. False if no solution exists.
-    """
-    return search(grid_values(grid))
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
