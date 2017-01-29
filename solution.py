@@ -22,10 +22,6 @@ def assign_value(sudoku, box, value):
         assignments.append(sudoku.copy())
     return sudoku
 
-def get_pairs(sudoku):
-    """Return all the boxes with just 2 digits"""
-    return [box for box in boxes if len(sudoku[box]) == 2]
-
 def solved_boxes(sudoku):
     """Returns the number of boxes solved in a sudoku"""
     return len([box for box in sudoku.keys() if len(sudoku[box]) == 1])
@@ -41,7 +37,6 @@ def some(seq):
         if e: return e
     return False
 
-# Display functions
 def grid_values(grid):
     """
     Returns a dict that represents a sudoku.
@@ -88,6 +83,9 @@ units = dict((box, [unit for unit in unitlist if box in unit]) for box in boxes)
 peers = dict((box, set(sum(units[box], []))-set([box])) for box in boxes)
 
 
+def return_pairs(sudoku):
+    return [box for box in boxes if len(sudoku[box]) == 2]
+
 def naked_twins(sudoku):
     """Eliminates values using the naked twins strategy.
     Args:
@@ -96,23 +94,19 @@ def naked_twins(sudoku):
         A dict representation of the sudoku with the
         naked twins deleted from it's peers.
     """
-    pair_list = get_pairs(sudoku)
+    pairs = return_pairs(sudoku)
     for box in pair_list:
         for unit in units[box]:
-            # Find the peers in the unit that contains 2 digits
-            # but is not the box itself
-            peers_with_pairs = set(unit).intersection(set(peers[box])).intersection(set(pair_list))
-
-            for peer in peers_with_pairs:
+            peers_pairs = set(unit).intersection(set(peers[box])).intersection(set(pairs))
+            for peer in peers_pairs:
                 if sudoku[box] == sudoku[peer]:
                     for item in set(unit).difference(set([box, peer])):
-                        digit_1 = sudoku[box][0]
-                        digit_2 = sudoku[box][1]
-
-                        if digit_1 in sudoku[item]:
-                            sudoku = assign_value(sudoku, item, sudoku[item].replace(digit_1, ''))
-                        if digit_2 in sudoku[item]:
-                            assign_value(sudoku, item, sudoku[item].replace(digit_2, ''))
+                        t_1 = sudoku[box][0]
+                        t_2 = sudoku[box][1]
+                        if t_1 in sudoku[item]:
+                            sudoku = assign_value(sudoku, item, sudoku[item].replace(t_1, ''))
+                        if t_2 in sudoku[item]:
+                            assign_value(sudoku, item, sudoku[item].replace(t_2, ''))
 
     return sudoku
 
@@ -132,7 +126,6 @@ def eliminate(sudoku):
         value = sudoku[box]
         for peer in peers[box]:
             assign_value(sudoku, peer, sudoku[peer].replace(value, ''))
-
 
     return sudoku
 
@@ -162,19 +155,15 @@ def reduce_puzzle(sudoku):
     Returns:
         A sudoku dict solved or partially solved
     """
-    improving = True
-    while improving:
-        solved_values = solved_boxes(sudoku)
-
+    working = True
+    while working:
+        solved_values_prior = solved_boxes(sudoku)
         sudoku = eliminate(sudoku)
         sudoku = only_choice(sudoku)
         sudoku = naked_twins(sudoku)
-
         solved_values_after = solved_boxes(sudoku)
+        working = solved_values_prior != solved_values_after
 
-        improving = solved_values != solved_values_after
-
-        # Sanity check, return False if there is a box with zero available values:
         if len([box for box in sudoku.keys() if len(sudoku[box]) == 0]):
             return False
     return sudoku
