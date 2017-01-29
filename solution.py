@@ -1,5 +1,9 @@
 assignments = []
 
+rows = 'ABCDEFGHI'
+cols = '123456789'
+possible_digits = '123456789'
+
 def assign_value(values, box, value):
     """
     Please use this function to update your values dictionary!
