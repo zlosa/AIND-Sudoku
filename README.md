@@ -3,13 +3,13 @@
 
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
-A: Constraint Propagation applies constraints in a repeated manner in order to reduce the search space. Here we enforce the naked twins srategy which first identifies pairs of boxes belonging to the same set of peers - with the same 2 possible numbers - and further eliminating from all boxes that also have these two boxes as peers. 
+A: Constraint Propagation applies constraints in a repeated manner in order to reduce the search space. Here we enforce the naked twins srategy which first identifies pairs of boxes belonging to the same set of peers - with the same 2 possible numbers - further eliminating from all boxes that also have these two boxes as peers. 
 
 We use the function naked_twins in conjunction with the eliminate and only-choice functions.
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
-A: *Student should provide answer here*
+A: Include the diagonals as an added unit, which will act as a constraint for all the boxes in the diagonals. This will remove possible digits from the unit's peers; these peers will include the diagonal, if the box is in a diagonal. It will not accept any solutions that do not satisfy this diagonal constraint.
 
 ### Install
 
