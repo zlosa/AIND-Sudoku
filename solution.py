@@ -22,41 +22,153 @@ def naked_twins(values):
     # Find all instances of naked twins
     # Eliminate the naked twins as possibilities for their peers
 
-def cross(A, B):
+def cross(a, b):
+    """
     "Cross product of elements in A and elements in B."
-    pass
+    
+    Return a list with all concatenations of a letter in
+    `a` with a letter in `b`
+    Args:
+        a: A string
+        b: A string
+    Returns:
+        A list formed by all the possible concatenations of a
+        letter in `a` with a letter in `b`
+    """
+    return [s + t for s in a for t in b]
 
 def grid_values(grid):
     """
-    Convert grid into a dict of {square: char} with '123456789' for empties.
+    Returns a dict that represents a sudoku.
     Args:
-        grid(string) - A grid in string form.
+        grid: A string with the starting numbers
+        for all the boxes in a sudoku. Empty boxes
+        can be represented as dots `.`.
+        Example: `'..3.2.6.'...`
     Returns:
-        A grid in dictionary form
-            Keys: The boxes, e.g., 'A1'
-            Values: The value in each box, e.g., '8'. If the box has no value, then the value will be '123456789'.
+        A dict that represents a sudoku. The keys
+        will be the boxes labels and it's value will be the number
+        or a dot `.` if the box is empty.
     """
-    pass
+    assert len(grid) == 81, "The lenght of `grid` should be 81. A 9x9 sudoku"
+    chars = []
+    for char in grid:
+        if char in possible_digits: chars.append(char)
+        if char == '.': chars.append(possible_digits)
+    return dict(zip(boxes, chars))
 
 def display(values):
     """
-    Display the values as a 2-D grid.
+    Prints the values of a sudoku as a 2-D grid.
     Args:
-        values(dict): The sudoku in dictionary form
+        values: A dict representing a sodoku.
+    Returns:
+        `None`
+        
     """
-    pass
+    width = 1 + max(len(values[s]) for s in boxes)
+    line = '+'.join(['-' * (width * 3)] * 3)
+    for row in rows:
+        print(''.join(values[row + col].center(width) + ('|' if col in '36' else '') for col in cols))
+        if row in 'CF': print(line)
+    return
 
-def eliminate(values):
-    pass
+boxes = cross(rows, cols)
 
-def only_choice(values):
-    pass
+row_units = [cross(row, cols) for row in rows]
 
-def reduce_puzzle(values):
-    pass
+column_units = [cross(rows, col) for col in cols]
 
-def search(values):
-    pass
+square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
+
+diagonal_units = [[row + cols[rows.index(row)] for row in rows],[row + cols[sorted(rows,reverse=True).index(row)] for row in rows]]
+unitlist = row_units + column_units + square_units + diagonal_units
+units = dict((box, [unit for unit in unitlist if box in unit]) for box in boxes)
+peers = dict((box, set(sum(units[box], []))-set([box])) for box in boxes)
+
+
+def eliminate(sudoku):
+    """
+    Returns a sudoku dict after applying the eliminate technique.
+    Args:
+        sudoku: A dict representing the sudoku. It'll contain
+        in each box the value of it, or the possible values.
+    Returns:
+        A sudoku dict after applying the eliminate technique in all
+        the boxes.
+    """
+    solved_values = [box for box in sudoku.keys() if len(sudoku[box]) == 1]
+    for box in solved_values:
+        value = sudoku[box]
+        for peer in peers[box]:
+            assign_value(sudoku, peer, sudoku[peer].replace(value, ''))
+
+
+    return sudoku
+
+def only_choice(sudoku):
+    """
+    It runs through all the units of a sudoku
+    and it applies the only choice technique.
+    Args:
+        sudoku: A dict representing the sudoku.
+    Returns:
+        A sudoku dict after applying the only choice technique.
+    """
+    for unit in unitlist:
+        for value in possible_digits:
+            value_places = [box for box in unit if value in sudoku[box]]
+            if len(value_places) == 1:
+                assign_value(sudoku, value_places[0], value)
+
+    return sudoku
+
+
+def reduce_puzzle(sudoku):
+    """
+    Uses constrain propagation to reduce the search space
+    Args:
+        sudoku: A dict representing the sudoku.
+    Returns:
+        A sudoku dict solved or partially solved
+    """
+    improving = True
+    while improving:
+        solved_values = solved_boxes(sudoku)
+
+        sudoku = eliminate(sudoku)
+        sudoku = only_choice(sudoku)
+        sudoku = naked_twins(sudoku)
+
+        solved_values_after = solved_boxes(sudoku)
+
+        improving = solved_values != solved_values_after
+
+        # Sanity check, return False if there is a box with zero available values:
+        if len([box for box in sudoku.keys() if len(sudoku[box]) == 0]):
+            return False
+    return sudoku
+
+
+def search(sudoku):
+    """
+    Uses depth search first and propagaation to find a solution for the sudoku
+    Args:
+        sudoku: A dict representation of a sudoku
+    Returns:
+        A dict representation of the sudoku solved
+    """
+    sudoku = reduce_puzzle(sudoku)
+    if sudoku is False:
+        return False
+
+    # Check if the sudoku is solved
+    if all([len(sudoku[box]) == 1 for box in boxes]):
+        return sudoku
+
+    n, min_box = min((len(sudoku[box]), box) for box in boxes if len(sudoku[box]) > 1)
+
+    return some(search(update_dict(sudoku.copy(), min_box, digit)) for digit in sudoku[min_box])
 
 def solve(grid):
     """
@@ -67,6 +179,7 @@ def solve(grid):
     Returns:
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
+    return search(grid_values(grid))
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
