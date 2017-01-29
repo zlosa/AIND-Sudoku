@@ -4,18 +4,7 @@ rows = 'ABCDEFGHI'
 cols = '123456789'
 possible_digits = '123456789'
 
-# Utility functions
 def cross(a, b):
-    """
-    Return a list with all concatenations of a letter in
-    `a` with a letter in `b`
-    Args:
-        a: A string
-        b: A string
-    Returns:
-        A list formed by all the possible concatenations of a
-        letter in `a` with a letter in `b`
-    """
     return [s + t for s in a for t in b]
 
 def assign_value(sudoku, box, value):
@@ -87,19 +76,10 @@ def display(values):
         print(''.join(values[row + col].center(width) + ('|' if col in '36' else '') for col in cols))
         if row in 'CF': print(line)
     return
-# Sudoku structure variables
+
 boxes = cross(rows, cols)
-
-# Lets get all the row units
-# row_units[0] = ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1']
 row_units = [cross(row, cols) for row in rows]
-
-# Same for column units
-# column_units[0] = ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1']
 column_units = [cross(rows, col) for col in cols]
-
-# And now for square units
-# square_units[0] = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3', 'C1', 'C2', 'C3']
 square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
 
 diagonal_units = [[row + cols[rows.index(row)] for row in rows],[row + cols[sorted(rows,reverse=True).index(row)] for row in rows]]
@@ -107,8 +87,6 @@ unitlist = row_units + column_units + square_units + diagonal_units
 units = dict((box, [unit for unit in unitlist if box in unit]) for box in boxes)
 peers = dict((box, set(sum(units[box], []))-set([box])) for box in boxes)
 
-
-# Constrain startegies
 
 def naked_twins(sudoku):
     """Eliminates values using the naked twins strategy.
