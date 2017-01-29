@@ -93,7 +93,7 @@ def reduce_puzzle(sudoku):
         sudoku = only_choice(sudoku)
         sudoku = naked_twins(sudoku)
         solved_values_after = solved_boxes(sudoku)
-        working = solved_values_prior != solved_values_after
+        working = solved_values_prior == solved_values_after
 
         if len([box for box in sudoku.keys() if len(sudoku[box]) == 0]):
             return False
