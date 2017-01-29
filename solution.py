@@ -45,23 +45,24 @@ def display(values):
         if row in 'CF': print(line)
     return
 
-def return_pairs(sudoku):
-    return [box for box in boxes if len(sudoku[box]) == 2]
+#def return_pairs(sudoku):
+    #return [box for box in boxes if len(sudoku[box]) == 2]
 
 def naked_twins(sudoku):
-    pairs = return_pairs(sudoku)
+    #pairs = return_pairs(sudoku)
+    pairs = [box for box in boxes if len(sudoku[box]) == 2]
     for box in pairs:
         for unit in units[box]:
             peers_pairs = set(unit).intersection(set(peers[box])).intersection(set(pairs))
             for peer in peers_pairs:
                 if sudoku[box] == sudoku[peer]:
                     for item in set(unit).difference(set([box, peer])):
-                        t_1 = sudoku[box][0]
-                        t_2 = sudoku[box][1]
-                        if t_1 in sudoku[item]:
-                            sudoku = assign_value(sudoku, item, sudoku[item].replace(t_1, ''))
-                        if t_2 in sudoku[item]:
-                            assign_value(sudoku, item, sudoku[item].replace(t_2, ''))
+                        x = sudoku[box][0]
+                        y = sudoku[box][1]
+                        if x in sudoku[item]:
+                            sudoku = assign_value(sudoku, item, sudoku[item].replace(x, ''))
+                        if y in sudoku[item]:
+                            assign_value(sudoku, item, sudoku[item].replace(y, ''))
 
     return sudoku
 
