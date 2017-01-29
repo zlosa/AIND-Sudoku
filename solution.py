@@ -45,11 +45,7 @@ def display(values):
         if row in 'CF': print(line)
     return
 
-#def return_pairs(sudoku):
-    #return [box for box in boxes if len(sudoku[box]) == 2]
-
 def naked_twins(sudoku):
-    #pairs = return_pairs(sudoku)
     pairs = [box for box in boxes if len(sudoku[box]) == 2]
     for box in pairs:
         for unit in units[box]:
