@@ -30,7 +30,8 @@ def naked_twins(sudoku):
         A dict representation of the sudoku with the
         naked twins deleted from it's peers.
     """
-    pair_list = get_pairs(sudoku)
+    potential_twins = [box for box in values.keys() if len(values[box]) == 2]
+    pair_list = potential_twins
     for box in pair_list:
         for unit in units[box]:
             # Find the peers in the unit that contains 2 digits
